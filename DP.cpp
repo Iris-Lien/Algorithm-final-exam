@@ -1,125 +1,77 @@
-#include <list>
+
 #include <iostream>
+#include <algorithm>
+#include <cmath>
 using namespace std ;
 
-typedef list<int> LISTINT;
-
-LISTINT listAnother;
-LISTINT list_result;
-
-int d[20][2]= {
-    { 37, 52 },
-	{ 49, 49 },
-	{ 52, 64 },
-	{ 20, 26 },
-	{ 40, 30 },
-	{ 21, 47 },
-	{ 17, 63 },
-	{ 31, 62 },
-	{ 52, 33 },
-	{ 51, 21 },
-	{ 42, 41 },
-	{ 31, 32 },
-	{ 5, 25 },
-	{ 12, 42 },
-	{ 36, 16 },
-	{ 52, 41 },
-	{ 27, 23 },
-	{ 17, 33 },
-	{ 13, 13 },
-	{ 57, 58 },
-
-}; //路徑權值
-int matrix_length=4;
-
-int getPath(int n,LISTINT list_org)
+typedef struct pix   //Define structure store data
 {
+    double  x, y ;
+} Pix;
 
-    LISTINT::iterator i;
-
-    int minValue;
-    if(n==1)
-    {
-        i=list_org.begin();
-        minValue= d[*i-1][0];
-        if(list_org.size()==matrix_length-1)
-        {
-            list_result=list_org;
-        }
-    }
-    else
-    {
-        int temp;
-        i=list_org.begin();
-        temp=*i;
-        list_org.erase(i);
-        i=list_org.begin();
-        minValue=d[temp-1][*(i)-1]+getPath(n-1,list_org);
-        if(list_org.size()==matrix_length-1)
-        {
-            list_result=list_org;
-        }
-
-        for(int j=2; j<n; j++)
-        {
-            i=list_org.begin();
-            for(int k=1; k<j; k++)
-            {
-                i++;
-            }
-
-            int tempvalue=*i;
-            list_org.erase(i);
-            list_org.push_front(tempvalue);
-            i=list_org.begin();
-            tempvalue=d[temp-1][*(i)-1]+getPath(n-1,list_org);
-
-            if(tempvalue<minValue)
-            {
-                if(list_org.size()==matrix_length-1)
-                {
-                    list_result=list_org;
-                }
-                minValue=tempvalue;
-            }
-
-        }
-    }
-    return minValue;
+Pix Date[100000];
+double Distance(int a,int b)
+{
+    return double (sqrt((Date[a].x-Date[b].x)*(Date[a].x-Date[b].x) + (Date[a].y-Date[b].y)*(Date[a].y-Date[b].y)));
 }
-int main(int argc, char* argv[])
-{
 
-    LISTINT list_org;
-    LISTINT::iterator h;
-    list_org.push_front(4);
-    list_org.push_front(3);
-    list_org.push_front(2);
-    list_org.push_front(1);
-    cout<<"旅行商問題動態規劃演算法"<<endl;
-    cout<<"路線長度的矩陣表示如下 （-1表示無限大）"<<endl;
-    for(int j=0; j<matrix_length; j++)
+int main ()
+{
+    int n ;
+    cin >> n;
+
+
+    for (int i=1 ; i <= n ; i++) //Enter the data, because the title data is already sorted by x, so there is no need to sort
     {
-        cout<<endl;
-        for(int k=0; k<matrix_length; k++)
+        cin >> Date[i].x >> Date[i].y;
+    }
+
+    double dp[n+1][n+1]; //State transition equation
+    //dp[i][j] i<=j means the shortest path of i->1 1-j
+    dp[1][2] = Distance (1,2);//initialization
+
+    for (int j = 3 ; j<=n; j++) //(All are gradually recursive processes)
+    {
+        // when i <j-1
+        for (int i=1 ; i<=j-2; i++)
         {
-            cout<<" "<<d[j][k];
+            dp[i][j] = dp[i][j-1] + Distance(j,j-1);
+        }
+        dp[j-1][j] = 1<<30;
+        //i == j-1 calculate the smallest dp[j-1][j] from j=3 to j=n
+        for (int k = 1 ; k <= j-2; k++)
+        {
+            dp[j-1][j] = min(dp[j-1][j], dp[k][j-1] + Distance(k,j) );
         }
     }
-    cout<<endl;
+    //Finally calculate the answer
+    dp[n][n] = dp[n-1][n] + Distance(n-1,n);
+    printf ("%.3f\n", dp[n][n]);
 
-
-    cout<<"計算結果:"<<getPath(4,list_org)<<endl;
-    list_result.push_front(1);
-    list_result.push_back(1);
-    cout<<"要走的路徑:---->:";
-    for (h = list_result.begin(); h != list_result.end(); ++h)
-
-        cout << *h << " ";
-
-
-    cout << endl;
-    int i;
-    cin>>i;
     return 0;
 }
+
+/*
+
+37 52
+49 49
+52 64
+20 26
+40 30
+21 47
+17 63
+31 62
+52 33
+51 21
+42 41
+31 32
+5 25
+12 42
+36 16
+52 41
+27 23
+17 33
+13 13
+57 58
+
+*/
